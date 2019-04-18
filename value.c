@@ -12,7 +12,7 @@ void initValueArray(ValueArray *array) {
 void writeValueArray(ValueArray *array, Value value) {
   if (array->capacity < array->count + 1) {
     int oldCapacity = array->capacity;
-    array->capacity = GROW_CAPACITY(oldCapacity);
+    array->capacity = GROW_CAPACITY(oldCapacity, 8);
     array->values =
         GROW_ARRAY(array->values, Value, oldCapacity, array->capacity);
   }

@@ -9,8 +9,10 @@ typedef struct {
   Chunk *chunk;
   /*instruction pointer, aka PC*/
   uint8_t *ip;
-  Value stack[STACK_MAX];
+  Value *stack;
   Value *stackTop;
+  int stackCount;
+  int stackCapacity;
 } VM;
 
 typedef enum {
