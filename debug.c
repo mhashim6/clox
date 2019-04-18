@@ -30,14 +30,15 @@ static int simpleInstruction(const char *name, int offset)
 int disassembleInstruction(Chunk *chunk, int offset)
 {
     printf("%04d ", offset);
-    
-    if (offset > 0 && chunk->lines[offset] == chunk->lines[offset - 1])
+    int line = getLine(chunk, offset);
+    int prev_instr_line = getLine(chunk, offset - 1);
+    if (line == prev_instr_line)
     {
         printf("   | ");
     }
     else
     {
-        printf("%4d ", chunk->lines[offset]);
+        printf("%4d ", line);
     }
     uint8_t instruction = chunk->code[offset];
     switch (instruction)
