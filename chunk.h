@@ -6,20 +6,18 @@
 
 #define MAX_BYTE_ADDRESS 255
 
-typedef enum
-{
-    OP_CONSTANT,
-    OP_CONSTANT_LONG,
-    OP_RETURN,
+typedef enum {
+  OP_CONSTANT,
+  OP_CONSTANT_LONG,
+  OP_RETURN,
 } OpCode;
 
-typedef struct
-{
-    int count;
-    int capacity;
-    uint8_t *code;
-    int *lines;
-    ValueArray constants;
+typedef struct {
+  int count;
+  int capacity;
+  uint8_t *code;
+  int *lines;
+  ValueArray constants;
 } Chunk;
 
 void initChunk(Chunk *chunk);
