@@ -23,15 +23,16 @@ static int constantInstruction(const char *name, Chunk *chunk, int offset)
 
 static int longConstantInstruction(const char *name, Chunk *chunk, int offset)
 {
-    uint8_t const_index_1 = chunk->code[offset + 1];
-    uint8_t const_index_2 = chunk->code[offset + 2];
-    uint8_t const_index_3 = chunk->code[offset + 3];
-    uint32_t const_index = (const_index_1 << (2 * 8)) | (const_index_2 << 8) | const_index_3;
+#define LONG_CONSTANT_INDEX(code, offset) \
+    ((code[offset + 1] << 16) | (code[offset + 2] << 8) | (code[offset + 3]))
+
+    uint32_t const_index = LONG_CONSTANT_INDEX(chunk->code, offset);
     printf("%-16s %4d '", name, const_index);
 
     printValue(chunk->constants.values[const_index]);
     printf("'\n");
     return offset + 4;
+#undef LONG_CONSTANT_INDEX
 }
 
 static int simpleInstruction(const char *name, int offset)
