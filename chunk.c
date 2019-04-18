@@ -34,6 +34,23 @@ int addConstant(Chunk *chunk, Value value)
     return chunk->constants.count - 1;
 }
 
+void writeConstant(Chunk *chunk, Value value, int line)
+{
+    int const_index = addConstant(chunk, value);
+    if (const_index <= MAX_BYTE_ADDRESS)
+    {
+        writeChunk(chunk, OP_CONSTANT, line);
+        writeChunk(chunk, const_index, line);
+    }
+    else
+    {
+        writeChunk(chunk, OP_CONSTANT_LONG, line);
+        writeChunk(chunk, const_index >> (2 * 8), line);    //1st byte
+        writeChunk(chunk, (const_index >> 8) & 0xFF, line); //2nd byte
+        writeChunk(chunk, const_index & 0xFF, line);        //1st byte
+    }
+}
+
 void freeChunk(Chunk *chunk)
 {
     FREE_ARRAY(uint8_t, chunk->code, chunk->capacity);
