@@ -100,6 +100,16 @@ static bool isAlpha(char c) {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
+static TokenType checkKeyword(int start, int length, const char *rest,
+                              TokenType type) {
+  if (lexer.current - lexer.start == start + length &&
+      memcmp(lexer.start + start, rest, length) == 0) {
+    return type;
+  }
+
+  return TOKEN_IDENTIFIER;
+}
+
 static TokenType identifierType() {
   switch (lexer.start[0]) {
     case 'a':
@@ -142,16 +152,6 @@ static TokenType identifierType() {
           return checkKeyword(2, 2, "ue", TOKEN_TRUE);
       }
   }
-  return TOKEN_IDENTIFIER;
-}
-
-static TokenType checkKeyword(int start, int length, const char *rest,
-                              TokenType type) {
-  if (lexer.current - lexer.start == start + length &&
-      memcmp(lexer.start + start, rest, length) == 0) {
-    return type;
-  }
-
   return TOKEN_IDENTIFIER;
 }
 
