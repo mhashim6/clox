@@ -3,11 +3,20 @@ build:
   dependencies:
     - main.c
     - memory.c
+    - memory.h
     - chunk.c
+    - chunk.h
     - value.c
+    - value.h
     - vm.c
+    - vm.h
     - debug.c
+    - debug.h
+    - compiler.c
+    - compiler.h
+    - lexer.c
+    - lexer.h
   formula: >
-    gcc *.c -o clox
+    gcc -Wall *.c -o clox
   output:
     - clox
