@@ -1,0 +1,13 @@
+build:
+  help: build clox
+  dependencies:
+    - main.c
+    - memory.c
+    - chunk.c
+    - value.c
+    - vm.c
+    - debug.c
+  formula: >
+    gcc *.c -o clox
+  output:
+    - clox
