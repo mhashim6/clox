@@ -26,7 +26,7 @@ void push(Value value) {
     vm.stack = GROW_ARRAY(vm.stack, Value, vm.stackCount, vm.stackCapacity);
     vm.stackTop = vm.stack + stackTopOffset;
   }
-  
+
   *vm.stackTop = value;
   vm.stackTop++;
   vm.stackCount++;
@@ -110,6 +110,19 @@ static InterpretResult run() {
 }
 
 InterpretResult interpret(const char* source) {
-  compile(source);
-  return INTERPRET_OK;
+  Chunk chunk;
+  initChunk(&chunk);
+
+  if (!compile(source, &chunk)) {
+
+    freeChunk(&chunk);
+    return INTERPRET_COMPILE_ERROR;
+  }
+
+  vm.chunk = &chunk;
+  vm.ip = vm.chunk->code;
+
+  InterpretResult result = run();
+  freeChunk(&chunk);
+  return result;
 }

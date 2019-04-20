@@ -13,7 +13,7 @@ static void repl() {
     printf("lox> ");
 
     if (!fgets(line, sizeof(line), stdin)) {
-      printf("\n");
+      printf("\n%s\n",line);
       break;
     }
 
