@@ -1,5 +1,5 @@
 build:
-  help: build clox
+  help: build clox.
   dependencies:
     - main.c
     - memory.c
@@ -16,7 +16,9 @@ build:
     - compiler.h
     - lexer.c
     - lexer.h
+    - parser.c
+    - parser.h
   formula: >
-    gcc -Wall *.c -o clox
+    gcc -std=gnu11 --pedantic -Wall main.c memory.c chunk.c value.c vm.c debug.c compiler.c lexer.c parser.c -o clox
   output:
     - clox
