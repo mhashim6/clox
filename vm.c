@@ -53,6 +53,10 @@ Value pop() {
 
 static Value peek(int distance) { return vm.stackTop[-1 - distance]; }
 
+static bool isFalsey(Value value) {
+  return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value)); //TODO: this yields: !nil = false
+}
+
 static InterpretResult run() {
 #define READ_BYTE() (*vm.ip++)
 #define LONG_CONSTANT_INDEX() \
@@ -98,42 +102,60 @@ static InterpretResult run() {
         /******************************/
 
       case OP_NIL:
-        push(NIL_VAL);
+        push(LOX_NIL);
         break;
       case OP_TRUE:
-        push(BOOL_VAL(true));
+        push(LOX_BOOL(true));
         break;
       case OP_FALSE:
-        push(BOOL_VAL(false));
+        push(LOX_BOOL(false));
+        break;
+
+        /******************************/
+
+      case OP_EQUAL: {
+        Value b = pop();
+        Value a = pop();
+        push(LOX_BOOL(valuesEqual(a, b)));
+        break;
+      }
+      case OP_GREATER:
+        BINARY_OP(LOX_BOOL, >);
+        break;
+      case OP_LESS:
+        BINARY_OP(LOX_BOOL, <);
         break;
 
         /******************************/
 
       case OP_ADD: {
-        BINARY_OP(NUMBER_VAL, +);
+        BINARY_OP(LOX_NUMBER, +);
         break;
       }
       case OP_SUBTRACT: {
-        BINARY_OP(NUMBER_VAL, -);
+        BINARY_OP(LOX_NUMBER, -);
         break;
       }
       case OP_MULTIPLY: {
-        BINARY_OP(NUMBER_VAL, *);
+        BINARY_OP(LOX_NUMBER, *);
         break;
       }
       case OP_DIVIDE: {
-        BINARY_OP(NUMBER_VAL, /);
+        BINARY_OP(LOX_NUMBER, /);
         break;
       }
         /******************************/
-
+      case OP_NOT: {
+        push(LOX_BOOL(!isFalsey(pop())));
+        break;
+      }
       case OP_NEGATE: {
         if (!IS_NUMBER(peek(0))) {
           runtimeError("Operand must be a number.");
           return INTERPRET_RUNTIME_ERROR;
         }
 
-        push(NUMBER_VAL(-AS_NUMBER(pop())));
+        push(LOX_NUMBER(-AS_NUMBER(pop())));
         break;
       }
 

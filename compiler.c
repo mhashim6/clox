@@ -96,7 +96,7 @@ void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
 void number() {
   double value = strtod(parser.previous.start, NULL);
-  writeConstant(currentChunk(), NUMBER_VAL(value), parser.previous.line);
+  writeConstant(currentChunk(), LOX_NUMBER(value), parser.previous.line);
 }
 
 void literal() {
@@ -124,6 +124,25 @@ void binary() {
 
   // Emit the operator instruction.
   switch (operator) {
+    case TOKEN_BANG_EQUAL:
+      emitBytes(OP_EQUAL, OP_NOT);
+      break;
+    case TOKEN_EQUAL_EQUAL:
+      emitByte(OP_EQUAL);
+      break;
+    case TOKEN_GREATER:
+      emitByte(OP_GREATER);
+      break;
+    case TOKEN_GREATER_EQUAL:
+      emitBytes(OP_LESS, OP_NOT);
+      break;
+    case TOKEN_LESS:
+      emitByte(OP_LESS);
+      break;
+    case TOKEN_LESS_EQUAL:
+      emitBytes(OP_GREATER, OP_NOT);
+      break;
+
     case TOKEN_PLUS:
       emitByte(OP_ADD);
       break;
@@ -149,6 +168,10 @@ void unary() {
 
   // Emit the operator instruction.
   switch (operator) {
+    case TOKEN_BANG:
+      emitByte(OP_NOT);
+      break;
+
     case TOKEN_MINUS:
       emitByte(OP_NEGATE);
       break;
