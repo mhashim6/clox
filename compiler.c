@@ -42,7 +42,6 @@ static void advance() {
   parser.previous = parser.current;
 
   for (;;) {
-
     parser.current = scanToken();
     if (parser.current.type != TOKEN_ERROR) break;
 
@@ -97,7 +96,23 @@ void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
 void number() {
   double value = strtod(parser.previous.start, NULL);
-  writeConstant(currentChunk(), value, parser.previous.line);
+  writeConstant(currentChunk(), NUMBER_VAL(value), parser.previous.line);
+}
+
+void literal() {
+  switch (parser.previous.type) {
+    case TOKEN_FALSE:
+      emitByte(OP_FALSE);
+      break;
+    case TOKEN_NIL:
+      emitByte(OP_NIL);
+      break;
+    case TOKEN_TRUE:
+      emitByte(OP_TRUE);
+      break;
+    default:
+      return;
+  }
 }
 
 void binary() {

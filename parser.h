@@ -35,6 +35,7 @@ void expression();
 void binary();
 void unary();
 void number();
+void literal();
 
 #define PARSE_RULES_LENGTH 40
 extern const ParseRule parsRules[PARSE_RULES_LENGTH];
