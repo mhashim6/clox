@@ -64,14 +64,17 @@ static void skipWhitespace() {
       case '\n':
         lexer.line++;
         advance();
+        break;
       case '/':
         if (peekNext() == '/') {
           while (peek() != '\n' && !isAtEnd()) advance();
-        } else {  // TODO: support `/**/ ` commes.
+        } else {  // TODO: support `/**/ ` comments.
           return;
         }
-
         break;
+
+      default:
+        return;
     }
   }
 }
@@ -168,48 +171,65 @@ Token scanToken() {
   if (isAtEnd()) return makeToken(TOKEN_EOF);
 
   char c = advance();
-
+  // printf("%c\n", c);
+  // printf("digit: %d\n", isDigit(c));
+  // printf("alpha: %d\n", isAlpha(c));
   if (isDigit(c)) return number();
   if (isAlpha(c)) return identifier();
   switch (c) {
     case '(':
       return makeToken(TOKEN_LEFT_PAREN);
+      break;
     case ')':
       return makeToken(TOKEN_RIGHT_PAREN);
+      break;
     case '{':
       return makeToken(TOKEN_LEFT_BRACE);
+      break;
     case '}':
       return makeToken(TOKEN_RIGHT_BRACE);
+      break;
     case ';':
       return makeToken(TOKEN_SEMICOLON);
+      break;
     case ',':
       return makeToken(TOKEN_COMMA);
+      break;
     case '.':
       return makeToken(TOKEN_DOT);
+      break;
     case '-':
       return makeToken(TOKEN_MINUS);
+      break;
     case '+':
       return makeToken(TOKEN_PLUS);
+      break;
     case '/':
       return makeToken(TOKEN_SLASH);
-
+      break;
       /******************************/
 
     case '*':
       return makeToken(TOKEN_STAR);
+      break;
     case '!':
       return makeToken(match('=') ? TOKEN_BANG_EQUAL : TOKEN_BANG);
+      break;
     case '=':
       return makeToken(match('=') ? TOKEN_EQUAL_EQUAL : TOKEN_EQUAL);
+      break;
     case '<':
       return makeToken(match('=') ? TOKEN_LESS_EQUAL : TOKEN_LESS);
+      break;
     case '>':
       return makeToken(match('=') ? TOKEN_GREATER_EQUAL : TOKEN_GREATER);
+      break;
 
       /******************************/
 
     case '"':
       return string();
+      break;
 
     default:
       return errorToken("Unexpected character.");
