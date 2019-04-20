@@ -37,6 +37,6 @@ void unary();
 void number();
 
 #define PARSE_RULES_LENGTH 40
-extern ParseRule parsRules[PARSE_RULES_LENGTH];
+extern const ParseRule parsRules[PARSE_RULES_LENGTH];
 
 #define PARSE_RULE(type) (&parsRules[type])

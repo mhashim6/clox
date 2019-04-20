@@ -1,6 +1,6 @@
 #include "parser.h"
 
-ParseRule parsRules[] = {
+const ParseRule parsRules[] = {
     {grouping, NULL, PREC_CALL},    // TOKEN_LEFT_PAREN
     {NULL, NULL, PREC_NONE},        // TOKEN_RIGHT_PAREN
     {NULL, NULL, PREC_NONE},        // TOKEN_LEFT_BRACE

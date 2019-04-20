@@ -171,9 +171,6 @@ Token scanToken() {
   if (isAtEnd()) return makeToken(TOKEN_EOF);
 
   char c = advance();
-  // printf("%c\n", c);
-  // printf("digit: %d\n", isDigit(c));
-  // printf("alpha: %d\n", isAlpha(c));
   if (isDigit(c)) return number();
   if (isAlpha(c)) return identifier();
   switch (c) {
