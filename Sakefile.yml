@@ -18,7 +18,9 @@ build:
     - lexer.h
     - parser.c
     - parser.h
+    - object.c
+    - object.h
   formula: >
-    gcc -std=gnu11 --pedantic -Wall main.c memory.c chunk.c value.c vm.c debug.c compiler.c lexer.c parser.c -o clox
+    gcc -std=gnu11 --pedantic -Wall main.c memory.c chunk.c value.c vm.c debug.c compiler.c lexer.c parser.c object.c -o clox
   output:
     - clox

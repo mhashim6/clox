@@ -38,6 +38,7 @@ void expression();
 void binary();
 void unary();
 void number();
+void string();
 void literal();
 
 #define PARSE_RULES_LENGTH 40

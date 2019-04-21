@@ -1,11 +1,13 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "common.h"
 #include "compiler.h"
 #include "debug.h"
 #include "memory.h"
 #include "vm.h"
+#include "object.h"
 
 VM vm;
 
@@ -54,7 +56,25 @@ Value pop() {
 static Value peek(int distance) { return vm.stackTop[-1 - distance]; }
 
 static bool isFalsey(Value value) {
-  return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value)); //TODO: this yields: !nil = false
+  return IS_NIL(value) || (IS_BOOL(value) &&
+                           !AS_BOOL(value));  // TODO: this yields: !nil = false
+}
+
+static void concatenate() {
+
+  ObjString* b = LOX_STRING(pop());
+  ObjString* a = LOX_STRING(pop());
+
+  int length = a->length + b->length;
+
+  char* chars = ALLOCATE(char, length + 1);
+  printf("I'm called\n");
+  memcpy(chars, a->chars, a->length);
+  memcpy(chars + a->length, b->chars, b->length);
+  chars[length] = '\0';
+
+  ObjString* result = takeString(chars, length);
+  push(LOX_OBJ(result));
 }
 
 static InterpretResult run() {
@@ -129,7 +149,16 @@ static InterpretResult run() {
         /******************************/
 
       case OP_ADD: {
-        BINARY_OP(LOX_NUMBER, +);
+        if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
+          concatenate();
+        } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
+          double b = AS_NUMBER(pop());
+          double a = AS_NUMBER(pop());
+          push(LOX_NUMBER(a + b));
+        } else {
+          runtimeError("Operands must be two numbers or two strings.");
+          return INTERPRET_RUNTIME_ERROR;
+        }
         break;
       }
       case OP_SUBTRACT: {

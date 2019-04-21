@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "compiler.h"
+#include "object.h"
 #include "parser.h"
 
 #ifdef DEBUG_PRINT_CODE
@@ -97,6 +98,12 @@ void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 void number() {
   double value = strtod(parser.previous.start, NULL);
   writeConstant(currentChunk(), LOX_NUMBER(value), parser.previous.line);
+}
+
+void string() {
+  ObjString* str = copyString(parser.previous.start + 1, parser.previous.length - 2);
+  writeConstant(currentChunk(), LOX_OBJ(str), parser.previous.line);
+  // `+1` & `-2` to trim qoutes.
 }
 
 void literal() {
