@@ -10,6 +10,7 @@ typedef enum {
 
 struct sObj {
   ObjType type;
+  struct sObj* next;
 };
 
 struct sObjString {
