@@ -86,6 +86,8 @@ static Token string() {
   }
   if (isAtEnd()) return errorToken("Unterminated string.");
 
+  // The closing ".
+  advance();
   return makeToken(TOKEN_STRING);
 }
 static bool isDigit(char c) { return c >= '0' && c <= '9'; }
