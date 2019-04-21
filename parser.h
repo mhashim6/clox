@@ -1,3 +1,6 @@
+#ifndef clox_parser_h
+#define clox_parser_h
+
 #include "common.h"
 #include "lexer.h"
 
@@ -41,3 +44,5 @@ void literal();
 extern const ParseRule parsRules[PARSE_RULES_LENGTH];
 
 #define PARSE_RULE(type) (&parsRules[type])
+
+#endif
