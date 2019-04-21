@@ -6,16 +6,17 @@
 #include "compiler.h"
 #include "debug.h"
 #include "memory.h"
-#include "vm.h"
 #include "object.h"
+#include "vm.h"
 
 VM vm;
 
 static void resetStack() {
-  vm.stackCapacity = 0;
-  vm.stackCount = 0;
-  vm.stack = NULL;
-  vm.stackTop = vm.stack;
+  Stack* stack = &vm.stack;
+  stack->capacity = 0;
+  stack->count = 0;
+  stack->elements = NULL;
+  stack->top = stack->elements;
 }
 
 static void runtimeError(const char* format, ...) {
@@ -31,31 +32,38 @@ static void runtimeError(const char* format, ...) {
   resetStack();
 }
 
-void initVM() { resetStack();
+void initVM() {
+  resetStack();
   vm.objects = NULL;
 }
 
 void freeVM() { freeObjects(); }
 
 void push(Value value) {
-  if (vm.stackCount + 1 > vm.stackCapacity) {
-    int stackTopOffset = vm.stackTop - vm.stack;
-    vm.stackCapacity = GROW_CAPACITY(vm.stackCapacity, STACK_MAX);
-    vm.stack = GROW_ARRAY(vm.stack, Value, vm.stackCount, vm.stackCapacity);
-    vm.stackTop = vm.stack + stackTopOffset;
+  Stack* stack = &vm.stack;
+
+  if (stack->count + 1 > stack->capacity) {
+    int stackTopOffset = stack->top - stack->elements;
+    stack->capacity = GROW_CAPACITY(stack->capacity, STACK_MAX);
+    stack->elements =
+        GROW_ARRAY(stack->elements, Value, stack->count, stack->capacity);
+    stack->top = stack->elements + stackTopOffset;
   }
 
-  *vm.stackTop = value;
-  vm.stackTop++;
-  vm.stackCount++;
+  *stack->top = value;
+  stack->top++;
+  stack->count++;
 }
 Value pop() {
-  vm.stackTop--;
-  vm.stackCount--;
-  return *vm.stackTop;
+  Stack* stack = &vm.stack;
+
+  stack->top--;
+  stack->count--;
+  stack->capacity = GROW_CAPACITY(stack->capacity, STACK_MAX);
+  return *stack->top;
 }
 
-static Value peek(int distance) { return vm.stackTop[-1 - distance]; }
+static Value peek(int distance) { return vm.stack.top[-1 - distance]; }
 
 static bool isFalsey(Value value) {
   return IS_NIL(value) || (IS_BOOL(value) &&
@@ -63,7 +71,6 @@ static bool isFalsey(Value value) {
 }
 
 static void concatenate() {
-
   ObjString* b = LOX_STRING(pop());
   ObjString* a = LOX_STRING(pop());
 
@@ -101,7 +108,7 @@ static InterpretResult run() {
   for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
     printf("          ");
-    for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
+    for (Value* slot = vm.stack.elements; slot < vm.stack.top; slot++) {
       printf("[ ");
       printValue(*slot);
       printf(" ]");

@@ -6,14 +6,17 @@
 #define STACK_MAX 256
 
 typedef struct {
+  Value *elements;
+  Value *top;
+  int count;
+  int capacity;
+} Stack;
+
+typedef struct {
   Chunk *chunk;
   /*instruction pointer, aka PC*/
   uint8_t *ip;
-  Value *stack;
-  Value *stackTop;
-  int stackCount;
-  int stackCapacity;
-
+  Stack stack;
   Obj *objects;
 } VM;
 
