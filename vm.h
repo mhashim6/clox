@@ -2,6 +2,7 @@
 #define clox_vm_h
 
 #include "chunk.h"
+#include "table.h"
 
 #define STACK_MAX 256
 
@@ -18,6 +19,7 @@ typedef struct {
   uint8_t *ip;
   Stack stack;
   Obj *objects;
+  Table strings; //for string interning.
 } VM;
 
 typedef enum {
