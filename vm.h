@@ -20,6 +20,7 @@ typedef struct {
   Stack stack;
   Obj *objects;
   Table strings; //for string interning.
+  Table globals;
 } VM;
 
 typedef enum {

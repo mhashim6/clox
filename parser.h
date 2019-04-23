@@ -25,7 +25,7 @@ typedef enum {
   PREC_PRIMARY
 } Precedence;
 
-typedef void (*ParseFn)();
+typedef void (*ParseFn)(bool canAssign);
 
 typedef struct {
   ParseFn prefix;
@@ -33,13 +33,16 @@ typedef struct {
   Precedence precedence;
 } ParseRule;
 
-void grouping();
+void grouping(bool canAssign);
 void expression();
-void binary();
-void unary();
-void number();
-void string();
-void literal();
+void declaration();
+void statement();
+void variable(bool canAssign);
+void binary(bool canAssign);
+void unary(bool canAssign);
+void number(bool canAssign);
+void string(bool canAssign);
+void literal(bool canAssign);
 
 #define PARSE_RULES_LENGTH 40
 extern const ParseRule parsRules[PARSE_RULES_LENGTH];
