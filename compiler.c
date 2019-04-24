@@ -1,18 +1,29 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "common.h"
 #include "compiler.h"
 #include "object.h"
-#include "parser.h"
 
 #ifdef DEBUG_PRINT_CODE
 #include "debug.h"
 #endif
 
 Parser parser;
+CompilerState* cmpState = NULL;
 
 Chunk* compilingChunk;
+
+static void initCompiler(CompilerState* state) {
+  state->localCount = 0;
+  state->scopeDepth = GLOBAL_SCOPE;
+  cmpState = state;
+}
+
+static void beginScope() { cmpState->scopeDepth++; }
+static void endScope() { cmpState->scopeDepth--; }
+
 static Chunk* currentChunk() { return compilingChunk; }
 
 static void errorAt(Token* token, const char* message) {
@@ -101,16 +112,6 @@ static void emitBytes(uint8_t byte1, uint8_t byte2) {
   emitByte(byte2);
 }
 
-static void endCompiler() {
-  emitByte(OP_RETURN);
-
-#ifdef DEBUG_PRINT_CODE
-  if (!parser.hadError) {
-    disassembleChunk(currentChunk(), "code");
-  }
-#endif
-}
-
 static uint8_t makeConstant(Value value) {
   int constant = addConstant(currentChunk(), value);
   if (constant > UINT8_MAX) {
@@ -145,16 +146,85 @@ static void parsePrecedence(Precedence precedence) {
 
 void expression() { parsePrecedence(PREC_ASSIGNMENT); }
 
+void block() {
+  while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
+    declaration();
+  }
+
+  consume(TOKEN_RIGHT_BRACE, "Expect '}' after block.");
+}
+
 static uint8_t identifierConstant(Token* name) {
   return makeConstant(LOX_OBJ(copyString(name->start, name->length)));
 }
 
+static void addLocal(Token name) {
+  if (cmpState->localCount == UINT8_COUNT) {
+    error("Too many local variables in function.");  // Who does this?!
+    return;
+  }
+
+  Local* local = &cmpState->locals[cmpState->localCount++];
+  local->name = name;
+  local->depth = UNINITIALIZED;
+}
+
+static bool identifiersEqual(Token* a, Token* b) {
+  if (a->length != b->length) return false;
+  return memcmp(a->start, b->start, a->length) == 0;
+}
+
+static int resolveLocal(CompilerState* state, Token* name) {
+  for (int i = state->localCount - 1; i >= 0; i--) {
+    Local* local = &state->locals[i];
+    if (identifiersEqual(name, &local->name)) {
+      if (local->depth == UNINITIALIZED)
+        error("Cannot read local variable in its own initializer.");
+
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+static void declareVariable() {
+  // Global variables are implicitly declared.
+  if (cmpState->scopeDepth == GLOBAL_SCOPE) return;
+
+  Token* name = &parser.previous;
+  for (int i = cmpState->localCount - 1; i >= 0; i--) {
+    Local* local = &cmpState->locals[i];
+    if (local->depth != UNINITIALIZED && local->depth < cmpState->scopeDepth)
+      break;
+    if (identifiersEqual(name, &local->name)) {
+      error("Variable with this name already declared in this scope.");
+    }
+  }
+
+  addLocal(*name);
+}
+
+static void markInitialized() {
+  if (cmpState->scopeDepth == 0) return;
+  cmpState->locals[cmpState->localCount - 1].depth = cmpState->scopeDepth;
+}
+
 static uint8_t parseVariable(const char* errorMessage) {
   consume(TOKEN_IDENTIFIER, errorMessage);
+
+  declareVariable();
+  if (cmpState->scopeDepth > GLOBAL_SCOPE) return 0;
+
   return identifierConstant(&parser.previous);
 }
 
 static void defineVariable(uint8_t global) {
+  if (cmpState->scopeDepth > GLOBAL_SCOPE) {
+    markInitialized();
+    return;
+  }
+
   emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
@@ -196,19 +266,32 @@ void declaration() {
 void statement() {
   if (match(TOKEN_PRINT)) {
     printStatement();
+  } else if (match(TOKEN_LEFT_BRACE)) {
+    beginScope();
+    block();
+    endScope();
   } else {
     expressionStatement();
   }
 }
 
 static void namedVariable(Token name, bool canAssign) {
-  int arg = identifierConstant(&name);
+  uint8_t getOp, setOp;
+  int arg = resolveLocal(cmpState, &name);
+  if (arg != -1) {
+    getOp = OP_GET_LOCAL;
+    setOp = OP_SET_LOCAL;
+  } else {
+    arg = identifierConstant(&name);
+    getOp = OP_GET_GLOBAL;
+    setOp = OP_SET_GLOBAL;
+  }
 
   if (canAssign && match(TOKEN_EQUAL)) {
     expression();
-    emitBytes(OP_SET_GLOBAL, (uint8_t)arg);
+    emitBytes(setOp, (uint8_t)arg);
   } else {
-    emitBytes(OP_GET_GLOBAL, (uint8_t)arg);
+    emitBytes(getOp, (uint8_t)arg);
   }
 }
 
@@ -316,8 +399,21 @@ void grouping(bool canAssign) {
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after expression.");
 }
 
+static void endCompiler() {
+  emitByte(OP_RETURN);
+
+#ifdef DEBUG_PRINT_CODE
+  if (!parser.hadError) {
+    disassembleChunk(currentChunk(), "code");
+  }
+#endif
+}
+
 bool compile(const char* source, Chunk* chunk) {
   initLexer(source);
+
+  CompilerState state;
+  initCompiler(&state);
 
   compilingChunk = chunk;
 

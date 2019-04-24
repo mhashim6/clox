@@ -11,6 +11,11 @@ typedef struct {
   bool panicMode;
 } Parser;
 
+typedef struct {
+  Token name;
+  int depth;
+} Local;
+
 typedef enum {
   PREC_NONE,
   PREC_ASSIGNMENT,  // =
@@ -35,6 +40,7 @@ typedef struct {
 
 void grouping(bool canAssign);
 void expression();
+void block();
 void declaration();
 void statement();
 void variable(bool canAssign);
