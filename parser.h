@@ -47,6 +47,8 @@ void variable(bool canAssign);
 void binary(bool canAssign);
 void unary(bool canAssign);
 void number(bool canAssign);
+void or_(bool canAssign);
+void and_(bool canAssign);
 void string(bool canAssign);
 void literal(bool canAssign);
 
